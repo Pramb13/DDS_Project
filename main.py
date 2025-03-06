@@ -1,9 +1,12 @@
 import streamlit as st
 import cv2
 import numpy as np
-import simpleaudio as sa
+import pygame  # Using pygame for sound alerts
 import mediapipe as mp
 from scipy.spatial import distance as dist
+
+# Initialize pygame mixer for audio
+pygame.mixer.init()
 
 # Initialize MediaPipe Face Mesh
 mp_face_mesh = mp.solutions.face_mesh
@@ -19,24 +22,23 @@ def eye_aspect_ratio(eye):
 # Function to play an alert sound
 def sound_alert():
     try:
-        wave_obj = sa.WaveObject.from_wave_file("alert.wav")
-        play_obj = wave_obj.play()
-        play_obj.wait_done()
+        pygame.mixer.music.load("alert.wav")  # Ensure alert.wav exists
+        pygame.mixer.music.play()
     except Exception as e:
         st.error(f"Error playing alert sound: {e}")
 
 # Drowsiness Detection Function
 def detect_drowsiness():
-    st.title("Driver Drowsiness Detection - Sound Alert")
-    st.write("Monitoring drowsiness using webcam and playing alert sound if detected.")
-
+    st.title("🚗 Driver Drowsiness Detection System")
+    st.write("**Detecting drowsiness via webcam.**")
+    
     EAR_THRESHOLD = 0.25
     CONSEC_FRAMES = 30
     COUNTER = 0
 
     cap = cv2.VideoCapture(0)
     frame_placeholder = st.empty()
-    stop_button = st.button("Stop Detection")
+    stop_button = st.button("🛑 Stop Detection")
 
     while cap.isOpened():
         if stop_button:
@@ -53,8 +55,8 @@ def detect_drowsiness():
         if results.multi_face_landmarks:
             for face_landmarks in results.multi_face_landmarks:
                 # Extract eye landmarks (from MediaPipe's 468-point face model)
-                left_eye_indices = [362, 385, 387, 263, 373, 380]  # Adjusted for MediaPipe
-                right_eye_indices = [33, 160, 158, 133, 153, 144]  
+                left_eye_indices = [362, 385, 387, 263, 373, 380]
+                right_eye_indices = [33, 160, 158, 133, 153, 144]
 
                 leftEye = np.array([(face_landmarks.landmark[i].x * frame.shape[1], 
                                      face_landmarks.landmark[i].y * frame.shape[0]) for i in left_eye_indices])
@@ -69,7 +71,7 @@ def detect_drowsiness():
                     COUNTER += 1
                     if COUNTER >= CONSEC_FRAMES:
                         sound_alert()
-                        st.warning("Drowsiness Alert!")
+                        st.warning("⚠️ Drowsiness Alert!")
                 else:
                     COUNTER = 0
 
@@ -79,6 +81,8 @@ def detect_drowsiness():
         frame_placeholder.image(frame_rgb, channels="RGB")
 
     cap.release()
+    cv2.destroyAllWindows()
 
-if st.button("Start Detection"):
+# UI Button to Start Detection
+if st.button("▶ Start Detection"):
     detect_drowsiness()
