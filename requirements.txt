@@ -1,7 +1,6 @@
 streamlit
-dlib
-opencv-python
-numpy
-imutils
-simpleaudio
-twilio
+opencv-python>=4.5.0
+numpy>=1.18.5
+simpleaudio>=1.0.4
+scipy>=1.4.1
+mediapipe>=0.10.0
